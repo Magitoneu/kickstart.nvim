@@ -482,10 +482,10 @@ require('lazy').setup({
       -- NOTE: `opts = {}` is the same as calling `require('mason').setup({})`
       { 'mason-org/mason.nvim', opts = {} },
       'WhoIsSethDaniel/mason-tool-installer.nvim',
-
       -- Useful status updates for LSP.
       { 'j-hui/fidget.nvim', opts = {} },
 
+      { 'mason-org/mason-lspconfig.nvim', opts = {} },
       -- Allows extra capabilities provided by blink.cmp
       'saghen/blink.cmp',
     },
@@ -603,6 +603,8 @@ require('lazy').setup({
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         -- ts_ls = {},
+        pylsp = {},
+        lua_ls = {},
       }
 
       -- Ensure the servers and tools above are installed
@@ -616,6 +618,7 @@ require('lazy').setup({
       vim.list_extend(ensure_installed, {
         'lua_ls', -- Lua Language server
         'stylua', -- Used to format Lua code
+        'ruff',
         -- You can add other tools here that you want Mason to install
       })
 
