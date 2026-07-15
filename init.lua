@@ -225,6 +225,51 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 -- vim.keymap.set("n", "<C-S-j>", "<C-w>J", { desc = "Move window to the lower" })
 -- vim.keymap.set("n", "<C-S-k>", "<C-w>K", { desc = "Move window to the upper" })
 
+-- Custom Crider --
+vim.keymap.set('n', '<leader>rr', function()
+  -- 1. Checks
+  if not os.getenv 'TMUX' then
+    print 'Not in Tmux'
+    return
+  end
+
+  -- 2. Smart Save
+  if vim.bo.buftype == '' and vim.fn.expand '%' ~= '' then vim.cmd 'write' end
+
+  -- 3. Define the Run Command
+  -- We target '.+1', which means "the next pane relative to where I am now"
+  local function send_cargo_run()
+    vim.fn.system {
+      'tmux',
+      'send-keys',
+      '-t',
+      '.+1',
+      'C-c',
+      ' cargo run',
+      'Enter',
+    }
+  end
+
+  -- 4. Check Pane Count
+  local pane_count = tonumber(vim.fn.system "tmux display-message -p '#{window_panes}'")
+
+  if pane_count == 1 then
+    -- Create pane but keep focus in Neovim (-d)
+    -- We use '-d' so '.+1' correctly points to the new pane, not back to us.
+    vim.fn.system { 'tmux', 'split-window', '-h', '-d', '-l', '30%' }
+
+    -- Wait 300ms for the new shell to initialize before typing
+    vim.defer_fn(send_cargo_run, 300)
+  else
+    -- Pane exists, just run
+    send_cargo_run()
+  end
+end, { desc = '[R]un [R]ust project' })
+
+vim.keymap.set('i', 'jk', '<Esc>', { desc = 'Exit insert mode' })
+vim.keymap.set('i', 'kj', '<Esc>', { desc = 'Exit insert mode' })
+--- Custom ends ---
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -268,8 +313,39 @@ require('lazy').setup({
     name = 'catppuccin',
     priority = 1000,
     opts = {
-      transparent_background = true,
+      flavour = 'latte',
+      transparent_background = false,
       term_colors = true,
+      color_overrides = {
+        latte = {
+          base = '#e8e6e1',
+          mantle = '#f0eee9',
+          crust = '#dddad4',
+          text = '#2a2a2a',
+          subtext1 = '#5a5a5a',
+          subtext0 = '#5a5a5a',
+          overlay2 = '#5a5a5a',
+          overlay1 = '#888888',
+          overlay0 = '#c8c5be',
+          surface2 = '#c8c5be',
+          surface1 = '#c8c5be',
+          surface0 = '#c8c5be',
+          blue = '#1a5490',
+          green = '#406028',
+          red = '#b03048',
+          yellow = '#6f5210',
+          mauve = '#6c2d8e',
+          pink = '#6c2d8e',
+          teal = '#147070',
+          sky = '#147070',
+          sapphire = '#147070',
+          lavender = '#6c2d8e',
+          peach = '#9a7020',
+          maroon = '#b03048',
+          flamingo = '#b03048',
+          rosewater = '#9a7020',
+        },
+      },
       integrations = {
         cmp = true,
         gitsigns = true,
@@ -282,7 +358,7 @@ require('lazy').setup({
         },
       },
     },
-    init = function() vim.cmd.colorscheme 'catppuccin-mocha' end,
+    init = function() vim.cmd.colorscheme 'catppuccin-latte' end,
   },
   { 'NMAC427/guess-indent.nvim', opts = {} },
 
@@ -781,7 +857,7 @@ require('lazy').setup({
         -- <c-k>: Toggle signature help
         --
         -- See :h blink-cmp-config-keymap for defining your own keymap
-        preset = 'default',
+        preset = 'super-tab',
 
         -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
         --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
@@ -912,7 +988,7 @@ require('lazy').setup({
   --    This is the easiest way to modularize your config.
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  -- { import = 'custom.plugins' },
+  { import = 'custom.plugins' },
   --
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!
